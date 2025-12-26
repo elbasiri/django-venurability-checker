@@ -3,96 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoro - Vulnerability Scanner</title>
+    <meta name="theme-color" content="#0f172a">
+    <title>Monitoro - Enterprise Vulnerability Scanner</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: linear-gradient(180deg, #0f172a 0%, #1a202c 50%, #111827 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 24px;
+            color: #e5e7eb;
         }
         .container {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            border: 1px solid #374151;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.05);
             width: 100%;
-            max-width: 600px;
-            padding: 40px;
+            max-width: 680px;
+            padding: 48px;
         }
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 36px;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 24px;
         }
         .header h1 {
-            color: #667eea;
-            font-size: 32px;
-            margin-bottom: 10px;
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 36px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
         .header p {
-            color: #666;
-            font-size: 14px;
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            margin-bottom: 10px;
+            color: #e5e7eb;
             font-weight: 600;
-            font-size: 14px;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         input[type="url"], input[type="text"], select {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border-color 0.3s;
+            padding: 11px 14px;
+            border: 1px solid #374151;
+            background: rgba(31, 41, 55, 0.5);
+            color: #e5e7eb;
+            font-size: 13px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'Courier New', monospace;
+        }
+        input[type="url"]::placeholder, input[type="text"]::placeholder {
+            color: #6b7280;
         }
         input[type="url"]:focus, input[type="text"]:focus, select:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3b82f6;
+            background: rgba(31, 41, 55, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), inset 0 1px 2px rgba(0, 0, 0, 0.3);
         }
         button {
             width: 100%;
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
+            padding: 11px 20px;
+            background: linear-gradient(90deg, #1e40af 0%, #0369a1 100%);
+            color: #f0f9ff;
+            border: 1px solid #0369a1;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        button:hover:not(:disabled) {
+            background: linear-gradient(90deg, #1e3a8a 0%, #0c4a6e 100%);
+            border-color: #0ea5e9;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
-        button:active {
-            transform: translateY(0);
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
         .loading {
             display: none;
             text-align: center;
-            color: #667eea;
+            color: #60a5fa;
             font-weight: 600;
             margin-top: 20px;
+            font-size: 13px;
         }
         .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(59, 130, 246, 0.2);
+            border-top: 2px solid #3b82f6;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin-right: 10px;
         }
         @keyframes spin {
@@ -100,71 +127,102 @@
             100% { transform: rotate(360deg); }
         }
         .info-box {
-            background: #f0f4ff;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.05) 100%);
+            border-left: 2px solid #3b82f6;
+            padding: 16px;
+            margin-bottom: 24px;
             font-size: 13px;
-            color: #555;
+            color: #d1d5db;
             line-height: 1.6;
         }
         .options {
-            background: #f9f9f9;
+            background: linear-gradient(135deg, rgba(31, 41, 55, 0.5) 0%, rgba(17, 24, 39, 0.5) 100%);
+            border: 1px solid #374151;
             padding: 20px;
-            border-radius: 6px;
-            margin-top: 20px;
+            margin-top: 24px;
         }
         .option-label {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .option-label:hover {
+            opacity: 0.9;
         }
         .option-label input {
-            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
             cursor: pointer;
+            accent-color: #3b82f6;
         }
         .option-label span {
-            color: #555;
+            color: #d1d5db;
             font-size: 13px;
+            line-height: 1.5;
         }
         .error-message {
-            color: #e74c3c;
-            font-size: 13px;
-            margin-top: 5px;
+            color: #f87171;
+            font-size: 12px;
+            margin-top: 6px;
             display: none;
         }
         .success-link {
-            color: #667eea;
+            color: #60a5fa;
             text-decoration: none;
             font-weight: 600;
+            transition: color 0.2s ease;
+            word-break: break-all;
         }
         .success-link:hover {
-            text-decoration: underline;
+            color: #93c5fd;
+        }
+        .recent-scan-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #374151;
+        }
+        .recent-scan-item:last-child {
+            border-bottom: none;
+        }
+        .scan-meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+        .status-badge {
+            display: inline-block;
+            font-weight: 600;
+        }
+        .status-vulnerable {
+            color: #f87171;
+        }
+        .status-clean {
+            color: #34d399;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔒 Monitoro</h1>
-            <p>Professional Web Vulnerability Scanner</p>
+            <h1>⚔️ MONITORO</h1>
+            <p>Enterprise Vulnerability Assessment Platform</p>
         </div>
 
         <div class="info-box">
-            <strong>What it does:</strong> Analyzes your website for XSS (Cross-Site Scripting) and SQLi (SQL Injection) vulnerabilities using advanced automated techniques. Results are saved for future reference.
+            <strong>Detection Scope:</strong> Advanced XSS (Cross-Site Scripting) and SQLi (SQL Injection) vulnerability scanning using professional-grade payload testing and response analysis.
         </div>
 
         <form id="scanForm" method="POST" action="/">
             {% csrf_token %}
             <div class="form-group">
-                <label for="url">Target Website URL</label>
+                <label for="url">Target URL</label>
                 <input
                     type="url"
                     id="url"
                     name="url"
-                    placeholder="https://example.com"
+                    placeholder="https://example.com/search?q=test"
                     required
                     pattern="https?://.+"
                 >
@@ -174,37 +232,37 @@
             <div class="options">
                 <div class="option-label">
                     <input type="checkbox" id="deep_scan" name="deep_scan" value="on" checked>
-                    <span><strong>Deep Scan</strong> - More payloads, slower (5+ minutes)</span>
+                    <span><strong>Deep Scan</strong> – Expanded payload set, increased coverage</span>
                 </div>
                 <div class="option-label">
                     <input type="checkbox" id="follow_links" name="follow_links" value="on" checked>
-                    <span><strong>Follow Links</strong> - Crawl and test linked pages</span>
+                    <span><strong>Link Crawl</strong> – Traverse and test application surface</span>
                 </div>
                 <div class="option-label">
                     <input type="checkbox" id="blind_detection" name="blind_detection" value="on" checked>
-                    <span><strong>Blind Detection</strong> - Time-based & error-based SQLi</span>
+                    <span><strong>Blind Detection</strong> – Time-based & inference-based analysis</span>
                 </div>
             </div>
 
-            <button type="submit">Start Scan</button>
+            <button type="submit">INITIATE SCAN</button>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
-                <div>Scanning target... This may take a few minutes.</div>
+                <div>Scanning in progress...</div>
             </div>
         </form>
 
         {% if recent_scans %}
-        <div class="options" style="margin-top: 30px;">
-            <h3 style="margin-bottom: 15px; color: #333;">Recent Scans</h3>
+        <div class="options" style="margin-top: 28px;">
+            <div style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; font-weight: 600;">Recent Scans</div>
             {% for scan in recent_scans %}
-            <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
+            <div class="recent-scan-item">
                 <a href="/result/{{ scan.id }}/" class="success-link">{{ scan.url }}</a>
-                <div style="font-size: 12px; color: #999; margin-top: 5px;">
-                    {{ scan.created_at|date:"M d, Y H:i" }} — 
+                <div class="scan-meta">
+                    {{ scan.created_at|date:"M d, Y H:i" }} – 
                     {% if scan.vulnerable %}
-                        <span style="color: #e74c3c; font-weight: 600;">⚠️ Vulnerable</span>
+                        <span class="status-badge status-vulnerable">⚠ VULNERABLE</span>
                     {% else %}
-                        <span style="color: #27ae60; font-weight: 600;">✓ Clean</span>
+                        <span class="status-badge status-clean">✓ CLEAN</span>
                     {% endif %}
                 </div>
             </div>
@@ -214,21 +272,23 @@
     </div>
 
     <script>
-        document.getElementById('scanForm').addEventListener('submit', function(e) {
+        const form = document.getElementById('scanForm');
+        const urlInput = document.getElementById('url');
+        const loadingDiv = document.getElementById('loading');
+        const btn = document.querySelector('button');
+        
+        form.addEventListener('submit', function(e) {
             e.preventDefault();
-            const url = document.getElementById('url').value;
-            const deep = document.getElementById('deep_scan').checked;
-            const follow = document.getElementById('follow_links').checked;
-            const blind = document.getElementById('blind_detection').checked;
-
+            const url = urlInput.value.trim();
+            
             if (!url) {
-                document.getElementById('urlError').textContent = 'Please enter a valid URL';
+                document.getElementById('urlError').textContent = 'URL required';
                 document.getElementById('urlError').style.display = 'block';
                 return;
             }
 
-            document.getElementById('loading').style.display = 'block';
-            document.querySelector('button').disabled = true;
+            loadingDiv.style.display = 'block';
+            btn.disabled = true;
 
             fetch('/', {
                 method: 'POST',
@@ -238,9 +298,9 @@
                 },
                 body: JSON.stringify({
                     url: url,
-                    deep_scan: deep,
-                    follow_links: follow,
-                    blind_detection: blind
+                    deep_scan: document.getElementById('deep_scan').checked,
+                    follow_links: document.getElementById('follow_links').checked,
+                    blind_detection: document.getElementById('blind_detection').checked
                 })
             })
             .then(r => r.json())
@@ -248,15 +308,17 @@
                 if (data.scan_id) {
                     window.location.href = '/result/' + data.scan_id + '/';
                 } else {
-                    alert('Error: ' + (data.error || 'Unknown error'));
-                    document.getElementById('loading').style.display = 'none';
-                    document.querySelector('button').disabled = false;
+                    document.getElementById('urlError').textContent = data.error || 'Scan failed';
+                    document.getElementById('urlError').style.display = 'block';
+                    loadingDiv.style.display = 'none';
+                    btn.disabled = false;
                 }
             })
             .catch(err => {
-                alert('Error: ' + err);
-                document.getElementById('loading').style.display = 'none';
-                document.querySelector('button').disabled = false;
+                document.getElementById('urlError').textContent = 'Network error: ' + err.message;
+                document.getElementById('urlError').style.display = 'block';
+                loadingDiv.style.display = 'none';
+                btn.disabled = false;
             });
         });
     </script>
