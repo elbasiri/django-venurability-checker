@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Results - Monitoro</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .header {
+            margin-bottom: 30px;
+        }
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: inline-block;
+            font-weight: 600;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .url {
+            color: #667eea;
+            word-break: break-all;
+            font-size: 14px;
+            font-family: monospace;
+        }
+        .status {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .status.vulnerable {
+            background: #ffe5e5;
+            color: #e74c3c;
+        }
+        .status.clean {
+            background: #e5f5e5;
+            color: #27ae60;
+        }
+        .status.scanning {
+            background: #fff4e5;
+            color: #f39c12;
+        }
+        .result-section {
+            margin-top: 30px;
+            padding: 20px;
+            border-left: 4px solid #ddd;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        .result-section.xss { border-left-color: #e74c3c; }
+        .result-section.sqli { border-left-color: #e74c3c; }
+        .result-section.clean { border-left-color: #27ae60; }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .section-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+        .finding {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            border: 2px solid #ffe5e5;
+            border-left: 5px solid #e74c3c;
+        }
+        .finding-param {
+            color: #e74c3c;
+            font-weight: 600;
+            font-family: monospace;
+            font-size: 14px;
+            background: #fff5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .finding-evidence {
+            background: #f5f5f5;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #333;
+            word-break: break-all;
+            max-height: 250px;
+            overflow-y: auto;
+            border-left: 4px solid #667eea;
+        }
+        .finding-method {
+            display: inline-block;
+            background: #e8f0fe;
+            color: #1a73e8;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-top: 8px;
+            font-weight: 600;
+        }
+        .no-findings {
+            color: #27ae60;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .metadata {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+        .meta-item {
+            font-size: 13px;
+            color: #666;
+        }
+        .meta-label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .meta-value {
+            color: #667eea;
+            font-family: monospace;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">← Back to Scanner</a>
+
+        <div class="header">
+            <h1>Scan Results</h1>
+            <div class="url">{{ scan.url }}</div>
+            {% if scan.status == 'completed' %}
+                {% if scan.vulnerable %}
+                    <div class="status vulnerable">⚠️ Vulnerabilities Found</div>
+                {% else %}
+                    <div class="status clean">✓ No Vulnerabilities Detected</div>
+                {% endif %}
+            {% elif scan.status == 'scanning' %}
+                <div class="status scanning">⏳ Scan in Progress...</div>
+            {% else %}
+                <div class="status">Status: {{ scan.status }}</div>
+            {% endif %}
+        </div>
+
+        {% if scan.status == 'scanning' %}
+        <div style="text-align: center; padding: 40px; color: #667eea;">
+            <div style="font-size: 24px; margin-bottom: 10px;">🔄</div>
+            <p>Scan is running. This page will auto-refresh every 5 seconds...</p>
+            <meta http-equiv="refresh" content="5">
+        </div>
+        {% else %}
+
+        <!-- XSS Results -->
+        <div class="result-section {% if scan.xss_findings.vulnerable %}xss{% else %}clean{% endif %}">
+            <div class="section-title">
+                <span class="section-icon">🚨</span>
+                XSS (Cross-Site Scripting) Analysis
+            </div>
+            {% if scan.xss_findings.vulnerable %}
+                <p style="margin-bottom: 20px; color: #e74c3c; font-weight: 600; font-size: 16px;">⚠️ {{ scan.xss_findings.findings|length }} Vulnerability(ies) Found</p>
+                {% for finding in scan.xss_findings.findings %}
+                <div class="finding">
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Parameter:</strong>
+                            <span class="finding-param">{{ finding.param }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Detection Method:</strong>
+                            <span class="finding-method">{{ finding.evidence }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Payload Used:</strong>
+                            <code style="background: #f5f5f5; padding: 6px 8px; border-radius: 3px; font-size: 12px; word-break: break-all;">{{ finding.payload }}</code>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Vulnerable URL:</strong>
+                            <a href="{{ finding.url }}" target="_blank" style="color: #667eea; text-decoration: none; word-break: break-all; font-size: 12px; font-family: monospace;">{{ finding.url }}</a>
+                        </div>
+                    </div>
+                    {% if finding.context %}
+                    <div style="margin-top: 10px;">
+                        <strong style="color: #333; display: block; margin-bottom: 5px;">Evidence/Context:</strong>
+                        <div class="finding-evidence" style="background: #fff5f5; border-left: 3px solid #e74c3c;">{{ finding.context }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-findings">✓ No XSS vulnerabilities detected in accessible parameters.</p>
+            {% endif %}
+        </div>
+
+        <!-- SQLi Results -->
+        <div class="result-section {% if scan.sqli_findings.vulnerable %}sqli{% else %}clean{% endif %}">
+            <div class="section-title">
+                <span class="section-icon">🗄️</span>
+                SQLi (SQL Injection) Analysis
+            </div>
+            {% if scan.sqli_findings.vulnerable %}
+                <p style="margin-bottom: 20px; color: #e74c3c; font-weight: 600; font-size: 16px;">⚠️ {{ scan.sqli_findings.findings|length }} Vulnerability(ies) Found</p>
+                {% for finding in scan.sqli_findings.findings %}
+                <div class="finding">
+                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Parameter:</strong>
+                            <span class="finding-param">{{ finding.param }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Detection Method:</strong>
+                            <span class="finding-method">{{ finding.evidence }}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Payload Used:</strong>
+                            <code style="background: #f5f5f5; padding: 6px 8px; border-radius: 3px; font-size: 12px; word-break: break-all;">{{ finding.payload }}</code>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #333;">Vulnerable URL:</strong>
+                            <a href="{{ finding.url }}" target="_blank" style="color: #667eea; text-decoration: none; word-break: break-all; font-size: 12px; font-family: monospace;">{{ finding.url }}</a>
+                        </div>
+                    </div>
+                    {% if finding.context %}
+                    <div style="margin-top: 10px;">
+                        <strong style="color: #333; display: block; margin-bottom: 5px;">Evidence/Context:</strong>
+                        <div class="finding-evidence" style="background: #f5f5f5; border-left: 3px solid #e74c3c;">{{ finding.context }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="no-findings">✓ No SQL Injection vulnerabilities detected in accessible parameters.</p>
+            {% endif %}
+        </div>
+
+        <!-- Metadata -->
+        <div class="metadata">
+            <div class="meta-item">
+                <span class="meta-label">Scan Date</span>
+                <span class="meta-value">{{ scan.created_at|date:"M d, Y H:i:s" }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Duration</span>
+                <span class="meta-value">{{ scan.duration|default:"N/A" }} seconds</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Pages Crawled</span>
+                <span class="meta-value">{{ scan.pages_crawled|default:1 }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Scan ID</span>
+                <span class="meta-value">#{{ scan.id }}</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/" class="btn btn-primary">New Scan</a>
+            <button onclick="location.reload()" class="btn btn-secondary">Refresh Results</button>
+        </div>
+
+        {% endif %}
+    </div>
+</body>
+</html>

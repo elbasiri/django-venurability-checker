@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoro - Vulnerability Scanner</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 600px;
+            padding: 40px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="url"], input[type="text"], select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="url"]:focus, input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        button {
+            width: 100%;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+        .options {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        .option-label {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .option-label input {
+            margin-right: 10px;
+            cursor: pointer;
+        }
+        .option-label span {
+            color: #555;
+            font-size: 13px;
+        }
+        .error-message {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .success-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔒 Monitoro</h1>
+            <p>Professional Web Vulnerability Scanner</p>
+        </div>
+
+        <div class="info-box">
+            <strong>What it does:</strong> Analyzes your website for XSS (Cross-Site Scripting) and SQLi (SQL Injection) vulnerabilities using advanced automated techniques. Results are saved for future reference.
+        </div>
+
+        <form id="scanForm" method="POST" action="/">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="url">Target Website URL</label>
+                <input
+                    type="url"
+                    id="url"
+                    name="url"
+                    placeholder="https://example.com"
+                    required
+                    pattern="https?://.+"
+                >
+                <div class="error-message" id="urlError"></div>
+            </div>
+
+            <div class="options">
+                <div class="option-label">
+                    <input type="checkbox" id="deep_scan" name="deep_scan" value="on" checked>
+                    <span><strong>Deep Scan</strong> - More payloads, slower (5+ minutes)</span>
+                </div>
+                <div class="option-label">
+                    <input type="checkbox" id="follow_links" name="follow_links" value="on" checked>
+                    <span><strong>Follow Links</strong> - Crawl and test linked pages</span>
+                </div>
+                <div class="option-label">
+                    <input type="checkbox" id="blind_detection" name="blind_detection" value="on" checked>
+                    <span><strong>Blind Detection</strong> - Time-based & error-based SQLi</span>
+                </div>
+            </div>
+
+            <button type="submit">Start Scan</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <div>Scanning target... This may take a few minutes.</div>
+            </div>
+        </form>
+
+        {% if recent_scans %}
+        <div class="options" style="margin-top: 30px;">
+            <h3 style="margin-bottom: 15px; color: #333;">Recent Scans</h3>
+            {% for scan in recent_scans %}
+            <div style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                <a href="/result/{{ scan.id }}/" class="success-link">{{ scan.url }}</a>
+                <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                    {{ scan.created_at|date:"M d, Y H:i" }} — 
+                    {% if scan.vulnerable %}
+                        <span style="color: #e74c3c; font-weight: 600;">⚠️ Vulnerable</span>
+                    {% else %}
+                        <span style="color: #27ae60; font-weight: 600;">✓ Clean</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.getElementById('scanForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('url').value;
+            const deep = document.getElementById('deep_scan').checked;
+            const follow = document.getElementById('follow_links').checked;
+            const blind = document.getElementById('blind_detection').checked;
+
+            if (!url) {
+                document.getElementById('urlError').textContent = 'Please enter a valid URL';
+                document.getElementById('urlError').style.display = 'block';
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('button').disabled = true;
+
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    url: url,
+                    deep_scan: deep,
+                    follow_links: follow,
+                    blind_detection: blind
+                })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.scan_id) {
+                    window.location.href = '/result/' + data.scan_id + '/';
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error'));
+                    document.getElementById('loading').style.display = 'none';
+                    document.querySelector('button').disabled = false;
+                }
+            })
+            .catch(err => {
+                alert('Error: ' + err);
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('button').disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
